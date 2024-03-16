@@ -116,19 +116,24 @@ export default class Interface {
     listarPacientesCPF() {
         console.clear();
 
-        let pacientes = this.#consultorio.listaPacientesConsultas();
+        let pacientes = this.#consultorio.listaPacientes();
 
         pacientes.sort((a, b) => {
-            if(a.paciente.cpf < b.paciente.cpf) return -1;
-            else if(a.paciente.cpf > b.paciente.cpf) return 1;
+            if(a.cpf < b.cpf) return -1;
+            else if(a.cpf > b.cpf) return 1;
             return 0;
         });
 
-        console.log('--------------------------------------------------------------');
-        console.log('CPF Nome Dt.Nasc. Idade');
+        console.log('---------------------------------------------------------------');
 
-        for(const {paciente, consulta} of pacientes) {
-            console.log(`${paciente.cpf} ${paciente.nome} ${paciente.data_nascimento.toLocaleDateString()} ${paciente.idade}`);
+        let maxNomeLength = pacientes.reduce((a, b) => a.nome.length < b.nome.length ? b : a, pacientes[0])?.nome?.length ?? 0;
+     
+        console.log('CPF        ', 'Nome'.padEnd(maxNomeLength), ' Dt.Nasc.', 'Idade');
+
+        for(const paciente of pacientes) {
+            const consulta = this.#consultorio.agenda.consultaDoPaciente(paciente.cpf);
+
+            console.log(`${paciente.cpf} ${paciente.nome.padEnd(maxNomeLength)} ${paciente.data_nascimento.toLocaleDateString()} ${paciente.idade.toString().padEnd(4)}`);
 
             if(consulta != undefined) {
                 let data_consulta = consulta.data_inicial;
@@ -141,19 +146,24 @@ export default class Interface {
     listarPacientesNome() {
         console.clear();
 
-        let pacientes = this.#consultorio.listaPacientesConsultas();
+        let pacientes = this.#consultorio.listaPacientes();
 
         pacientes.sort((a, b) => {
-            if(a.paciente.nome < b.paciente.nome) return -1;
-            else if(a.paciente.nome > b.paciente.nome) return 1;
+            if(a.nome < b.nome) return -1;
+            else if(a.nome > b.nome) return 1;
             return 0;
         });
 
-        console.log('---------------------------------------------------------------');
-        console.log('CPF Nome Dt.Nasc. Idade');
+        console.log('---------------------------------------------------------------------------------------------------------');
 
-        for(const {paciente, consulta} of pacientes) {
-            console.log(`${paciente.cpf} ${paciente.nome} ${paciente.data_nascimento.toLocaleDateString()} ${paciente.idade}`);
+        let maxNomeLength = pacientes.reduce((a, b) => a.nome.length < b.nome.length ? b : a, pacientes[0])?.nome?.length ?? 0;
+     
+        console.log('CPF        ', 'Nome'.padEnd(maxNomeLength), ' Dt.Nasc.', 'Idade');
+
+        for(const paciente of pacientes) {
+            const consulta = this.#consultorio.agenda.consultaDoPaciente(paciente.cpf);
+
+            console.log(`${paciente.cpf} ${paciente.nome.padEnd(maxNomeLength)} ${paciente.data_nascimento.toLocaleDateString()} ${paciente.idade.toString().padEnd(4)}`);
 
             if(consulta != undefined) {
                 let data_consulta = consulta.data_inicial;
@@ -201,11 +211,11 @@ export default class Interface {
     listarAgenda() {
         console.clear();
 
-        let getData = (data) => data.toLocaleDateString();
+        const getData = (data) => data.toLocaleDateString();
 
-        let getHora = (data) => data.toLocaleTimeString().substr(0, 5);
+        const getHora = (data) => data.toLocaleTimeString().substr(0, 5);
 
-        let getTempo = (data_inicial, data_final) => {
+        const getTempo = (data_inicial, data_final) => {
             let segundos = Math.floor((data_final - data_inicial) / 1000);
             let minutos = Math.floor(segundos % (60 * 60) / 60).toString();
             let horas = Math.floor(segundos / (60 * 60)).toString();
@@ -221,10 +231,7 @@ export default class Interface {
 
             consultas.sort((a, b) => a.data_inicial - b.data_inicial);
 
-            if(opcao == 'T') {
-                console.log('-------------------------------------------------------------');
-                console.log('Data H.Ini H.Fim Tempo Nome Dt.Nasc.');
-            } else if(opcao == 'P') {
+            if(opcao == 'P') {
                 let data_inicial = readline.question('Data inicial: ');
                 let data_final = readline.question('Data final: ');
 
@@ -236,9 +243,6 @@ export default class Interface {
                     continue;
                 }
 
-                console.log('-------------------------------------------------------------');
-                console.log('Data H.Ini H.Fim Tempo Nome Dt.Nasc.');
-
                 const [dia_ini, mes_ini, ano_ini] = data_inicial.split('/').map(x => parseInt(x));
                 const [dia_fim, mes_fim, ano_fim] = data_final.split('/').map(x => parseInt(x));
 
@@ -249,20 +253,27 @@ export default class Interface {
                     let date = new Date(consulta.data_inicial.toDateString());
                     return date >= dateInicial && date <= dateFinal;
                 });
-            } else if (opcao != 'T') {
+            } else if (opcao != 'T'){
                 console.log('opção inválida');
                 continue;
             }
 
+            let maxNomeLength = 0;
+            for(let i = 0; i < consultas.length; ++i)
+                maxNomeLength = Math.max(maxNomeLength, this.#consultorio.getPaciente(consultas[i].cpf).nome.length);
+
+            console.log('---------------------------------------------------------------------------------------------------');
+            console.log('Data       H.Ini H.Fim Tempo', 'Nome'.padEnd(maxNomeLength), ' Dt.Nasc.');
+            
             for(let i = 0; i < consultas.length; ++i) {
                 const {cpf, data_inicial, data_final} = consultas[i];
 
-                let paciente = this.#consultorio.getPaciente(cpf);
+                const paciente = this.#consultorio.getPaciente(cpf);
 
                 if(i == 0 || getData(data_inicial) != getData(consultas[i - 1].data_inicial))
-                    console.log(getData(data_inicial), getHora(data_inicial), getHora(data_final), getTempo(data_inicial, data_final), paciente.nome, getData(paciente.data_nascimento));
+                    console.log(getData(data_inicial), getHora(data_inicial), getHora(data_final), getTempo(data_inicial, data_final), paciente.nome.padEnd(maxNomeLength), getData(paciente.data_nascimento));
                 else
-                    console.log('          ', getHora(data_inicial), getHora(data_final), getTempo(data_inicial, data_final), paciente.nome, getData(paciente.data_nascimento));
+                    console.log('          ', getHora(data_inicial), getHora(data_final), getTempo(data_inicial, data_final), paciente.nome.padEnd(maxNomeLength), getData(paciente.data_nascimento));
             }
 
             break;

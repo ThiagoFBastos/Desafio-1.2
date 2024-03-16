@@ -16,9 +16,6 @@ export default class Consultorio {
         if(this.#pacientes.has(cpf))
             throw new Error("Já existe um paciente com o CPF informado");
 
-        if(paciente.idade < 13)
-            throw new Error("O paciente deve ter pelo menos 13 anos");
-
         this.#pacientes.set(cpf, paciente);
     }
 
@@ -41,8 +38,8 @@ export default class Consultorio {
             throw new Error("A hora final está com o formato incorreto");
 
         const [dia, mes, ano] = data.split('/').map(v => parseInt(v));
-        let hora_inicial = parseInt(horario_inicial.substr(0, 2)), minuto_inicial = parseInt(horario_inicial.substr(2, 4));
-        let hora_final = parseInt(horario_final.substr(0, 2)), minuto_final = parseInt(horario_final.substr(2, 4));
+        const hora_inicial = parseInt(horario_inicial.substr(0, 2)), minuto_inicial = parseInt(horario_inicial.substr(2, 4));
+        const hora_final = parseInt(horario_final.substr(0, 2)), minuto_final = parseInt(horario_final.substr(2, 4));
 
         if(minuto_inicial % 15 != 0)
             throw new Error("O horário inicial não está de acordo com a regra dos 15 minutos");
@@ -52,7 +49,7 @@ export default class Consultorio {
 
         const horario_consultorio_inicial = new Date(ano, mes - 1, dia, 8, 0), horario_consultorio_final = new Date(ano, mes - 1, dia, 19, 0);
 
-        let data_inicial = new Date(ano, mes - 1, dia, hora_inicial, minuto_inicial), data_final = new Date(ano, mes - 1, dia, hora_final, minuto_final);
+        const data_inicial = new Date(ano, mes - 1, dia, hora_inicial, minuto_inicial), data_final = new Date(ano, mes - 1, dia, hora_final, minuto_final);
 
         if(data_final <= data_inicial)
             throw new Error("O horário final não pode ser menor ou igual ao horário inicial");
@@ -77,13 +74,13 @@ export default class Consultorio {
             throw new Error("A hora inicial está com o formato incorreto");
 
         const [dia, mes, ano] = data.split('/').map(v => parseInt(v));
-        let hora_inicial = parseInt(horario_inicial.substr(0, 2)), minuto_inicial = parseInt(horario_inicial.substr(2, 4));
-        let data_inicial = new Date(ano, mes - 1, dia, hora_inicial, minuto_inicial);
+        const hora_inicial = parseInt(horario_inicial.substr(0, 2)), minuto_inicial = parseInt(horario_inicial.substr(2, 4));
+        const data_inicial = new Date(ano, mes - 1, dia, hora_inicial, minuto_inicial);
 
         if(data_inicial <= Date.now())
             throw new Error("A consulta para ser desmarcada deve acontecer no futuro");
 
-        let consulta = this.#agenda.consultaDoPaciente(cpf);
+        const consulta = this.#agenda.consultaDoPaciente(cpf);
 
         if(consulta == undefined || consulta.data_inicial.getTime() != data_inicial.getTime())
             throw new Error("Não existe consulta marcada para esse horário");
@@ -91,14 +88,10 @@ export default class Consultorio {
         this.#agenda.cancelaConsulta(cpf, data_inicial);
     }
 
-    listaPacientesConsultas() {
+    listaPacientes() {
         let resultado = [];
-        for(let paciente of this.#pacientes.values()) {
-            resultado.push({
-                paciente: paciente,
-                consulta: this.#agenda.consultaDoPaciente(paciente.cpf)
-            });
-        }
+        for(let paciente of this.#pacientes.values())
+            resultado.push(paciente);
         return resultado;
     }
 

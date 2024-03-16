@@ -41,12 +41,17 @@ export default class Paciente {
         if(!re.test(data_nascimento))
             throw new Error("A data de nascimento está com formato incorreto");
         const [dia, mes, ano] = data_nascimento.split('/').map(x => parseInt(x));
-        return this.#data_nascimento = new Date(ano, mes - 1, dia);
+        this.#data_nascimento = new Date(ano, mes - 1, dia);
+        if(this.idade < 13)
+            throw new Error("O paciente deve ter pelo menos 13 anos");
     }
 
     get idade() {
         let atualmente = new Date(Date.now());
-        let anos = Math.floor((atualmente - this.#data_nascimento) / (1000 * 60 * 60 * 24 * 365.25));
+        let nascimento = new Date(this.#data_nascimento);
+        let anos = atualmente.getFullYear() - nascimento.getFullYear();
+        nascimento.setFullYear(atualmente.getFullYear());
+        if(nascimento > atualmente) --anos;
         return anos;
     }
 }
