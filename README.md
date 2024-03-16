@@ -4,6 +4,9 @@ Desafio de Administração da Agenda de um Consultório Odontológico
 ## Instalação
 - insira: npm install no terminal
 
+## Execução
+- insira no terminal: node index.js
+
 ## Descrição
 
 Desenvolver uma aplicação console em Javascript para administrar a agenda de um consultório
